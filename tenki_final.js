@@ -91,6 +91,9 @@ function switchLocation(index) {
 
   const locations = loadLocations();
   const loc = locations[index];
+
+  if (!loc) return;
+
   document.getElementById('city-name').textContent = loc.name + 'の天気';
 
   const url = api
@@ -99,23 +102,25 @@ function switchLocation(index) {
     + '&timezone=Asia%2FTokyo';
 
   fetch(url)
-    .then(function (response) { return response.json(); })
-    .then(function (data) { makePage(data); });
+    .then(res => res.json())
+    .then(data => {
+      if (!data || !data.daily) return;
+      makePage(data);
+    });
 }
 
 function makePage(data) {
-  setData('day0', dateFormat(data.daily.time[0]));
-  setData('day1', dateFormat(data.daily.time[1]));
-  setData('weathercode0', getWMO(data.daily.weather_code[0]));
-  setData('weathercode1', getWMO(data.daily.weather_code[1]));
-  setData('temperature_2m_max0', data.daily.temperature_2m_max[0] + '℃');
-  setData('temperature_2m_max1', data.daily.temperature_2m_max[1] + '℃');
-  setData('temperature_2m_min0', data.daily.temperature_2m_min[0] + '℃');
-  setData('temperature_2m_min1', data.daily.temperature_2m_min[1] + '℃');
-  setData('precipitation_sum0', data.daily.precipitation_sum[0] + 'mm');
-  setData('precipitation_sum1', data.daily.precipitation_sum[1] + 'mm');
+  for (let i = 0; i < 3; i++) {
+    if (!data.daily.time || !data.daily.time[i]) continue;
 
-  const rainy = data.daily.precipitation_sum[0] > 0;
+    setData('day' + i, dateFormat(data.daily.time[i]));
+    setData('weathercode' + i, getWMO(data.daily.weather_code?.[i]));
+    setData('temperature_2m_max' + i, (data.daily.temperature_2m_max?.[i] ?? '--') + '℃');
+    setData('temperature_2m_min' + i, (data.daily.temperature_2m_min?.[i] ?? '--') + '℃');
+    setData('precipitation_sum' + i, (data.daily.precipitation_sum?.[i] ?? '--') + 'mm');
+  }
+
+  const rainy = data.daily.precipitation_sum[0] > 0 || data.daily.precipitation_sum[1] > 0 || data.daily.precipitation_sum[2] > 0;
   document.getElementById('body').style.backgroundColor = rainy ? '#cff' : '#ffc';
 }
 
@@ -156,8 +161,10 @@ function getWMO(w) {
   return String(w);
 }
 
-renderLocationList();
-switchLocation(currentIndex);
+window.addEventListener('DOMContentLoaded', function () {
+  renderLocationList();
+  switchLocation(currentIndex);
+});
 
 setInterval(function () {
   setData('time', dateFormat(new Date(), 1));
