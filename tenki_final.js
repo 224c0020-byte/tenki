@@ -6,6 +6,8 @@ const DEFAULT_LOCATIONS = [
 
 let currentIndex = 0;
 
+// -------------------- location --------------------
+
 function loadLocations() {
   const saved = localStorage.getItem('weather_locations');
   if (saved) {
@@ -17,6 +19,8 @@ function loadLocations() {
 function saveLocations(locations) {
   localStorage.setItem('weather_locations', JSON.stringify(locations));
 }
+
+// -------------------- add / remove --------------------
 
 function handleAdd() {
   const nameEl = document.querySelector('#add-form input[name="name"]');
@@ -43,8 +47,11 @@ function handleAdd() {
   renderLocationList();
 }
 
+// -------------------- delete --------------------
+
 function removeLocation(index) {
   const locations = loadLocations();
+
   if (locations.length <= 1) {
     alert('最後の1件は削除できません。');
     return;
@@ -61,23 +68,25 @@ function removeLocation(index) {
   switchLocation(currentIndex);
 }
 
+// -------------------- render list --------------------
+
 function renderLocationList() {
   const locations = loadLocations();
   const list = document.getElementById('location-list');
   list.innerHTML = '';
 
-  locations.forEach(function (loc, i) {
+  locations.forEach((loc, i) => {
     const li = document.createElement('li');
 
     const switchBtn = document.createElement('button');
     switchBtn.className = 'loc-btn' + (i === currentIndex ? ' active' : '');
     switchBtn.textContent = loc.name;
-    switchBtn.onclick = function () { switchLocation(i); };
+    switchBtn.onclick = () => switchLocation(i);
 
     const delBtn = document.createElement('button');
     delBtn.className = 'del-btn';
     delBtn.textContent = '✕';
-    delBtn.onclick = function () { removeLocation(i); };
+    delBtn.onclick = () => removeLocation(i);
 
     li.appendChild(switchBtn);
     li.appendChild(delBtn);
@@ -85,20 +94,22 @@ function renderLocationList() {
   });
 }
 
+// -------------------- switch location --------------------
+
 function switchLocation(index) {
   currentIndex = index;
   renderLocationList();
 
   const locations = loadLocations();
   const loc = locations[index];
-
   if (!loc) return;
 
   document.getElementById('city-name').textContent = loc.name + 'の天気';
 
-  const url = api
-    .replace('latitude=35.6895', 'latitude=' + loc.lat)
-    .replace('longitude=139.6917', 'longitude=' + loc.lng)
+  const url =
+    api
+      .replace('latitude=35.6895', 'latitude=' + loc.lat)
+      .replace('longitude=139.6917', 'longitude=' + loc.lng)
     + '&timezone=Asia%2FTokyo';
 
   fetch(url)
@@ -109,9 +120,11 @@ function switchLocation(index) {
     });
 }
 
+// -------------------- render weather --------------------
+
 function makePage(data) {
   for (let i = 0; i < 3; i++) {
-    if (!data.daily.time || !data.daily.time[i]) continue;
+    if (!data.daily.time?.[i]) continue;
 
     setData('day' + i, dateFormat(data.daily.time[i]));
     setData('weathercode' + i, getWMO(data.daily.weather_code?.[i]));
@@ -120,9 +133,16 @@ function makePage(data) {
     setData('precipitation_sum' + i, (data.daily.precipitation_sum?.[i] ?? '--') + 'mm');
   }
 
-  const rainy = data.daily.precipitation_sum[0] > 0 || data.daily.precipitation_sum[1] > 0 || data.daily.precipitation_sum[2] > 0;
-  document.getElementById('body').style.backgroundColor = rainy ? '#cff' : '#ffc';
+  const rainy =
+    (data.daily.precipitation_sum?.[0] ?? 0) > 0 ||
+    (data.daily.precipitation_sum?.[1] ?? 0) > 0 ||
+    (data.daily.precipitation_sum?.[2] ?? 0) > 0;
+
+  document.getElementById('body').style.backgroundColor =
+    rainy ? '#cff' : '#ffc';
 }
+
+// -------------------- helpers --------------------
 
 function setData(id, value) {
   const el = document.getElementById(id);
@@ -131,15 +151,19 @@ function setData(id, value) {
 
 function dateFormat(date, mode) {
   const d = new Date(date);
-  const year = d.getFullYear();
-  const month = d.getMonth() + 1;
-  const day = d.getDate();
-  const hour = addZero(d.getHours());
-  const minute = addZero(d.getMinutes());
-  const second = addZero(d.getSeconds());
 
-  if (mode === 1) return year + '年' + month + '月' + day + '日 ' + hour + ':' + minute + ':' + second;
-  return month + '月' + day + '日';
+  const y = d.getFullYear();
+  const m = d.getMonth() + 1;
+  const day = d.getDate();
+
+  const hh = addZero(d.getHours());
+  const mm = addZero(d.getMinutes());
+  const ss = addZero(d.getSeconds());
+
+  if (mode === 1) {
+    return `${y}年${m}月${day}日 ${hh}:${mm}:${ss}`;
+  }
+  return `${m}月${day}日`;
 }
 
 function addZero(n) {
@@ -161,15 +185,19 @@ function getWMO(w) {
   return String(w);
 }
 
-window.addEventListener('DOMContentLoaded', function () {
+// -------------------- init --------------------
+
+window.addEventListener('DOMContentLoaded', () => {
   renderLocationList();
   switchLocation(currentIndex);
 });
 
-setInterval(function () {
+// time update
+setInterval(() => {
   setData('time', dateFormat(new Date(), 1));
 }, 1000);
 
-setInterval(function () {
+// refresh weather
+setInterval(() => {
   switchLocation(currentIndex);
 }, 1000 * 60 * 60);
