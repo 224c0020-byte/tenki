@@ -3,70 +3,101 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>天気予報（複数地点対応）</title>
+  <title>きらきら天気</title>
   <link rel="stylesheet" href="tenki_final.css">
   <script src="tenki_final.js" defer></script>
 </head>
-
 <body id="body">
-  <h1 id="city-name">天気予報</h1>
-  <div id="time">----年--月--日 --:--:--</div>
+  <div class="app-shell">
+    <header class="hero-panel glass-card">
+      <div class="topbar">
+        <div class="brand">☁️ きらきら天気</div>
+        <div class="search-wrap">
+          <input id="search-input" type="text" placeholder="地名を検索">
+          <button id="search-btn" type="button">検索</button>
+        </div>
+      </div>
 
-  <div id="location-panel">
-    <h2>📍 地点</h2>
-    <ul id="location-list"></ul>
+      <div class="hero-main">
+        <div class="hero-copy">
+          <p class="eyebrow">今日の天気</p>
+          <h1 id="city-name">天気予報</h1>
+          <div id="time" class="time">----年--月--日 --:--:--</div>
+        </div>
 
-    <div id="add-form">
-      <input type="text" name="name" placeholder="地名（例: 大阪）">
-      <input type="number" name="lat" placeholder="緯度（例: 34.6937）" step="0.0001">
-      <input type="number" name="lng" placeholder="経度（例: 135.5023）" step="0.0001">
-      <button type="button" onclick="handleAdd()">＋ 追加</button>
+        <div class="today-card">
+          <div id="today-icon" class="weather-icon">☀️</div>
+          <div>
+            <div id="today-temp" class="temp-big">--°</div>
+            <div id="today-desc" class="temp-desc">読み込み中</div>
+            <div id="today-range" class="temp-range">-- / --</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-grid">
+        <div class="info-card">
+          <div class="info-icon">🌡️</div>
+          <div>
+            <div class="info-label">体感温度</div>
+            <div id="today-feels" class="info-value">--°</div>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-icon">💧</div>
+          <div>
+            <div class="info-label">湿度</div>
+            <div id="today-humidity" class="info-value">--%</div>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-icon">🌬️</div>
+          <div>
+            <div class="info-label">風速</div>
+            <div id="today-wind" class="info-value">--m/s</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="glass-card location-panel">
+      <div class="panel-heading">
+        <h2>📍 地点</h2>
+        <p>気になる場所を切り替えられます</p>
+      </div>
+      <ul id="location-list"></ul>
+
+      <div id="add-form" class="add-form">
+        <input type="text" name="name" placeholder="地名（例: 大阪）">
+        <input type="number" name="lat" placeholder="緯度" step="0.0001">
+        <input type="number" name="lng" placeholder="経度" step="0.0001">
+        <button type="button" onclick="handleAdd()">＋ 追加</button>
+      </div>
+
+      <div id="action-bar">
+        <button id="use-location-btn" type="button">現在地の天気を表示</button>
+      </div>
+    </section>
+
+    <section class="glass-card forecast-panel">
+      <div class="panel-heading">
+        <h2>5日間の予報</h2>
+        <p>横スクロールで確認できます</p>
+      </div>
+      <div id="forecast-cards" class="forecast-row"></div>
+    </section>
+
+    <section class="glass-card hourly-panel">
+      <div class="panel-heading">
+        <h2>24時間の詳細</h2>
+        <p id="hourly-status">読み込み中...</p>
+      </div>
+      <div id="hourly-list" class="hourly-list"></div>
+    </section>
+
+    <div id="credit">
+      <a href="https://open-meteo.com/">Weather data by Open-Meteo.com</a>
     </div>
-  </div>
-
-  <table>
-    <thead>
-      <tr>
-        <th></th>
-        <th id="day0">--月--日</th>
-        <th id="day1">--月--日</th>
-        <th id="day2">--月--日</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      <tr>
-        <th>天気</th>
-        <td id="weathercode0">--</td>
-        <td id="weathercode1">--</td>
-        <td id="weathercode2">--</td>
-      </tr>
-
-      <tr>
-        <th>最高気温</th>
-        <td id="temperature_2m_max0">--°C</td>
-        <td id="temperature_2m_max1">--°C</td>
-        <td id="temperature_2m_max2">--°C</td>
-      </tr>
-
-      <tr>
-        <th>最低気温</th>
-        <td id="temperature_2m_min0">--°C</td>
-        <td id="temperature_2m_min1">--°C</td>
-        <td id="temperature_2m_min2">--°C</td>
-      </tr>
-
-      <tr>
-        <th>降水量</th>
-        <td id="precipitation_sum0">--mm</td>
-        <td id="precipitation_sum1">--mm</td>
-        <td id="precipitation_sum2">--mm</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <div id="credit">
-    <a href="https://open-meteo.com/">Weather data by Open-Meteo.com</a>
   </div>
 </body>
 </html>
